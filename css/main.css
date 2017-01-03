@@ -306,7 +306,6 @@ body.landscape section.timer .timer-holder {
 			bottom: -100px;
 	}
 }
-
 .togglefs {
 		position: absolute;
 		top: 20px;
@@ -322,4 +321,9 @@ body.landscape section.timer .timer-holder {
 		font-variant: small-caps;
 		color: rgba(255,255,255,.8);
 		z-index : +2;
+		display: block
+}
+@supports ( display-mode: fullscreen) {
+	.togglefs {
+		display: none;	}
 }

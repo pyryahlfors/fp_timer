@@ -42,7 +42,6 @@
 			{ path: fp.path, file: 'fp_audio.js', disableCache: true, confirmLoad : 'typeof(fpAudio)' },									// Audio
 			{ path: fp.path, file: 'fp_swipe.js', disableCache: true, confirmLoad : 'typeof(fp.swipe)' },									// Local Storage
 			{ path: appRoot + 'js/', file: 'timer.js',confirmLoad : 'typeof(fpTimer)',  init: false, disableCache:true },
-//			{ path: appRoot + 'js/', file: 'gyroscope.js', disableCache:true },
 			{ path: appRoot + 'js/', file: 'fullscreen.js', disableCache:true },
 			{
 			// Everything is loaded - Initialize the application

@@ -30,6 +30,28 @@ var fpTimer = {
 			else {
 				document.body.classList.remove('landscape');
 				}
+
+				var setTranslateCoords = function ( elem, xyz ) {
+					var cssEngine = ( function ( ) {
+						var navUA = navigator.userAgent.toLowerCase();
+						if ( navUA.indexOf('webkit') != -1 ) { return 'webkit'; }
+						else if ( navUA.indexOf('safari') != -1 ) { return 'webkit'; }
+						else if ( navUA.indexOf('opera') != -1) { return 'O'; }
+						else if ( navUA.indexOf ('msie') != -1 ) { return 'ms'; }		// < IE 11
+						else if ( navUA.indexOf ('iemobile') != -1 ) { return 'ms'; } 	// IE 11
+						else if ( navUA.indexOf ('trident') != -1 ) { return 'ms'; } 	// IE 11
+						else if ( navUA.indexOf ('mozilla') != -1 ) { return 'Moz'; }
+						else { return '';}
+						} )( );
+						elem.style[cssEngine+'Transform']= "translate3d("+xyz[0]+"px,"+xyz[1]+"px,0)";
+					};
+				// Re-position swipe elements
+				var elems = document.querySelectorAll('INPUT.swipe-input');
+				for(var i=0, j=elems.length; i<j;i++){
+						var elemsLenght = elems[i].parentNode.querySelector('.select-dialog').querySelectorAll('DIV').length;
+						var stepLength = elems[i].parentNode.querySelector('.select-dialog').getBoundingClientRect().height / elemsLenght;
+						setTranslateCoords(elems[i].parentNode.querySelector('.select-dialog'), [ 0, -1*(elems[i].value*stepLength) ] );
+				}
 			};
 
 		togglePortrait();
@@ -249,17 +271,17 @@ fpTimer.init();
 
 var swipeSelect = document.querySelectorAll('.select-dialog');
 
-var stopKinetic = function(swipeDate){
-		var el = swipeDate.el;
+var stopKinetic = function(swipeData){
+		var el = swipeData.el;
 		var elData = el.getAttribute('data-input');
 
 		var elemsLenght = el.querySelectorAll('DIV').length;
 		var stepLength = el.getBoundingClientRect().height / elemsLenght;
-		document.querySelector('INPUT[name='+elData+']').value= Math.round(Math.abs(swipeDate.easeEndY) / stepLength);
+		document.querySelector('INPUT[name='+elData+']').value= Math.round(Math.abs(swipeData.easeEndY) / stepLength);
 
-		swipeDate.easeEndY = -1*Math.round(Math.abs(swipeDate.easeEndY) / stepLength)*stepLength;
-		swipeDate.el.style[swipeDate.cssEngine+'Transition']= "all "+swipeDate.timer+"ms";
-		swipeDate.setTranslateCoords( swipeDate.el, [ swipeDate.easeEndX, swipeDate.easeEndY ] );
+		swipeData.easeEndY = -1*Math.round(Math.abs(swipeData.easeEndY) / stepLength)*stepLength;
+		swipeData.el.style[swipeData.cssEngine+'Transition']= "all "+swipeData.timer+"ms";
+		swipeData.setTranslateCoords( swipeData.el, [ swipeData.easeEndX, swipeData.easeEndY ] );
 	};
 
 for(var i=0, j=swipeSelect.length;i<j;i++){
