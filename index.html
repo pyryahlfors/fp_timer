@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Timer</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="initial-scale = 1,user-scalable=no,maximum-scale=1.0">
+	<meta name="msapplication-tap-highlight" content="no"/>
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+	<link rel="stylesheet" href="css/main.css" />
+</head>
+
+<body>
+<div class="page-wrapper">
+	<div class="page home">
+		<section class="timer">
+			<span class="timer-holder">
+				<span class="title"></span>
+			</span>
+
+			<div class="controls">
+				<!-- Timer settings / -->
+				<div class="counter">
+					<div class="time">
+						<div class="hours">&nbsp;
+							<div class="select-dialog-viewport">
+								<div class="select-dialog" data-input="duration-hours"></div>
+							</div>
+							<input type="hidden" data-min="0" name="duration-hours" value="0" />
+						</div>
+						<div class="minutes">&nbsp;
+							<div class="select-dialog-viewport">
+								<div class="select-dialog" data-input="duration-minutes"></div>
+							</div>
+							<input type="hidden" data-min="0" name="duration-minutes" value="0" />
+						</div>
+						<div class="seconds">&nbsp;
+							<div class="select-dialog-viewport">
+								<div class="select-dialog" data-input="duration-seconds"></div>
+							</div>
+							<input type="hidden" data-min="1" name="duration-seconds" value="0" />
+						</div>
+					</div>
+				</div>
+				<!-- / Timer settings -->
+				<div class="text-center">
+					<button class="bgr-white start-timer">Start</button>
+					<button class="bgr-white stop-timer">Stop</button>
+					<button class="bgr-white pause-timer">Pause</button>
+				</div>
+			</div>
+			<div class="togglefs" onclick="toggleFullscreen();">X</div>
+		</section>
+	</div>
+</div>
+<!--script type="text/javascript" charset="UTF-8" src="js/parallax.js"></script-->
+<script src="js/fp_build.js"></script>
+</body>
+</html>
