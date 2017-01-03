@@ -8,12 +8,12 @@
 (function(){
 	var initialized = false;
 	// If run from local machine use relative path instead of fixed
-	var appRoot = ( location.hostname.indexOf('b-spot.mobi') === -1 ) ? '' : 'http://b-spot.mobi/';
+	var appRoot = ''; //
 
 	// FP path
 	var fpPath = appRoot + 'js/fpfw/';
 	var loadFpfw = document.createElement("script");
-	loadFpfw.src = fpPath+'fp_fw.js'; // +'?disablecache='+Math.round(Math.random()*9999)
+	loadFpfw.src = fpPath+'fp_fw.js?disablecache='+Math.round(Math.random()*9999);
 	loadFpfw.language = "javascript";
 	document.getElementsByTagName("head")[0].appendChild(loadFpfw);
 

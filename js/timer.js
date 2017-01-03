@@ -73,7 +73,7 @@ var fpTimer = {
 				var elemParent = elems[i].parentNode.querySelector('.select-dialog');
 				var elemsLenght = elemParent.querySelectorAll('DIV').length;
 				var stepLength = elemParent.getBoundingClientRect().height / elemsLenght;
-				setTranslateCoords(elemParent, [0, Math.floor(-1 * (elems[i].value * stepLength))]);
+				setTranslateCoords(elemParent, [0, -1 * (elems[i].value * stepLength)]);
 			}
 		};
 
