@@ -1,26 +1,16 @@
 CACHE MANIFEST
-# 2016-12-29 - 0001
+# 2017-01-04 - 0006
 
 # CSS
 ./css/animations.css
 ./css/main.css
 ./css/reset.css
 
-# Sounds
-./sounds/cowbell.mp3
-./sounds/cowbell.ogg
-./sounds/cowbell.wav
-
 # JS
-./js/fpfw/fp_animate.js
-./js/fpfw/fp_audio.js
-./js/fpfw/fp_dom.js
-./js/fpfw/fp_fw.js
-./js/fpfw/fp_localStorage.js
-./js/fpfw/fp_poly.js
+# ./js/fpfw/fp_audio.js
 ./js/fpfw/fp_swipe.js
-./js/fp_build.js
 ./js/fullscreen.js
+
 ./js/timer.js
 
 # Root
@@ -28,5 +18,6 @@ CACHE MANIFEST
 
 
 NETWORK:
+*
 
 FALLBACK:

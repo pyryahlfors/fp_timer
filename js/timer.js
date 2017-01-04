@@ -16,14 +16,19 @@ var fpTimer = {
     timerShelve: 0,
     countdown: true,
     timerDifference: 0,
+    repeat: false,
     dataSet: [
         0, 100
     ], // circles
 
     paused: false,
+    assistant: 'speechSynthesis' in window,
 
     init: function() {
-        "use strict";
+
+        this.btnStart = document.querySelector('.start-timer');
+        this.btnStop = document.querySelector('.stop-timer');
+        this.btnPause = document.querySelector('.pause-timer');
 
 		var isMobile = (function() {
 			var check = false;
@@ -83,7 +88,7 @@ var fpTimer = {
         window.addEventListener('resize', togglePortrait, false);
 
         // load sound effects
-        fpAudio.loadAudio('timer', 'mouseup', 'sounds/cowbell.' + fpAudio.support, 1);
+        // fpAudio.loadAudio('timer', 'mouseup', 'sounds/cowbell.' + fpAudio.support, 1);
 
         // bind controls
         this.control();
@@ -113,10 +118,6 @@ var fpTimer = {
         this.createCanvas();
         this.animate();
 
-        var btnStart = document.querySelector('.start-timer');
-        var btnStop = document.querySelector('.stop-timer');
-        var btnPause = document.querySelector('.pause-timer');
-
         // Play
         var playTimer = function(togglePause) {
             clearInterval(this.timer);
@@ -124,10 +125,10 @@ var fpTimer = {
             if (togglePause === true && !this.paused) {
                 this.paused = true;
                 this.timerPauseStarted = new Date().getTime() / 1000;
-                btnPause.classList.add('active');
-                btnStart.classList.remove('active');
+                this.btnPause.classList.add('active');
+                this.btnStart.classList.remove('active');
             } else {
-                btnStart.classList.add('active');
+                this.btnStart.classList.add('active');
 
                 var timerSeconds = Number(document.querySelector('INPUT[name="duration-seconds"]').value);
                 var timerMinutes = Number(document.querySelector('INPUT[name="duration-minutes"]').value);
@@ -141,8 +142,8 @@ var fpTimer = {
                 // Apply time on pause to the timer start clock
                 if (this.timerPauseStarted) {
                     this.timerDifference = (new Date().getTime() / 1000) - this.timerPauseStarted;
-                    btnPause.classList.remove('active');
-                    btnStart.classList.add('active');
+                    this.btnPause.classList.remove('active');
+                    this.btnStart.classList.add('active');
                     this.paused = false;
                     delete this.timerPauseStarted;
                     this.timerStart += this.timerDifference;
@@ -162,23 +163,32 @@ var fpTimer = {
 
         // Start timer
 
-        btnStart.addEventListener(window.globalClickEvent, playTimer.bind(this), false);
+        this.btnStart.addEventListener(window.globalClickEvent, function() {
+            playTimer();
+            this.btnStart.blur();
+            }.bind(this), false);
         // Pause
-        btnPause.addEventListener(window.globalClickEvent, function() {
+        this.btnPause.addEventListener(window.globalClickEvent, function() {
             playTimer(true);
+            this.btnPause.blur();
         }.bind(this), false);
 
         // Stop
-        btnStop.addEventListener(window.globalClickEvent, function() {
-            clearInterval(this.timer);
-            this.animate();
-            btnStart.classList.remove('active');
-            btnPause.classList.remove('active');
-            setTimeout(function() {
-                delete this.timerStart;
-            }.bind(this), 30);
+        this.btnStop.addEventListener(window.globalClickEvent, function() {
+            this.stop();
+            this.btnStop.blur();
         }.bind(this), false);
 
+    },
+
+    stop: function(){
+        clearInterval(this.timer);
+        this.animate();
+        this.btnStart.classList.remove('active');
+        this.btnPause.classList.remove('active');
+        setTimeout(function() {
+            delete this.timerStart;
+        }.bind(this), 30);
     },
 
     formatDate: function(params) {
@@ -214,8 +224,10 @@ var fpTimer = {
 
             // Reset timer
             if (this.timerNow - this.timerStart >= this.timerLength) {
+
                 this.timerStart = new Date().getTime() / 1000;
 
+/*
                 // Sound fx
                 var fxEvent = new CustomEvent("playsound", {
                     detail: {
@@ -224,6 +236,11 @@ var fpTimer = {
                     }
                 });
                 document.dispatchEvent(fxEvent);
+*/
+                if(!this.repeat){
+                    this.stop();
+                    this.speak('Time\'s up mother fucker')
+                }
             }
 
             this.dataSet[0] = 100 - ((100 / this.timerLength) * (this.timerNow - this.timerStart));
@@ -298,6 +315,16 @@ var fpTimer = {
             b = b + a;
         }
         this.ctx.closePath();
+    },
+
+    speak: function(text){
+        var voices = window.speechSynthesis.getVoices()[0];
+
+            var msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            msg.volume = 100;
+//            msg.voice = voices[0];
+            window.speechSynthesis.speak(msg);
     }
 };
 
@@ -335,12 +362,16 @@ var stopKinetic = function(swipeData) {
     swipeData.easeEndY = -1 * Math.round(Math.abs(swipeData.easeEndY) / stepLength) * stepLength;
     swipeData.el.style[swipeData.cssEngine + 'Transition'] = "all " + swipeData.timer + "ms";
     swipeData.setTranslateCoords(swipeData.el, [swipeData.easeEndX, swipeData.easeEndY]);
+    if(fpTimer.assistant){
+        var val = document.querySelector('INPUT[name=' + elData + ']').value;
+        var units =(Number(val) === 1) ? elData.split("-")[1].slice(0,-1) : elData.split("-")[1];
+        fpTimer.speak(val+ " " + units);
+    }
+
 };
 
 for (var i = 0, j = swipeSelect.length; i < j; i++) {
-    var swipe = (window.fp.swipe)
-        ? fp.swipe
-        : fpSwipe;
+    var swipe = fpSwipe;
     swipe.init({
         elem: swipeSelect[i],
         y: true,

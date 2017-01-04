@@ -1,6 +1,6 @@
 @import "reset.css";
 @import "animations.css";
-@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,800);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,800);
 
 /* body and background */
 body,html {
@@ -121,13 +121,16 @@ button {
 	-ms-transition: background .25s ease-in-out;
 	transition: background .25s ease-in-out;
 	outline : none;
+	box-shadow: 0 0 0 1px rgba(255,255,255,.3);
 }
 /* */
 
 
 button.active, button:hover{
-	background: rgba(135,225,255,.5);
-	color: rgba(232,229,219,.9);
+	box-shadow: 0 0 0 1px rgba(255,255,255,.8);
+	background: rgba(255,255,255,.8);
+	color: #888
+
 }
 
 .title {
