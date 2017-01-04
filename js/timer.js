@@ -8,9 +8,7 @@ var fpTimer = {
         'rgba(255,255,255,.5)', 'rgba(0,0,0,.1)', 'rgba(0,255,255,.6)', 'rgba(255,255,255,.8)', 'rgba(255,214,25,1)'
     ],
 
-    pixelRatio: (window.devicePixelRatio)
-        ? window.devicePixelRatio
-        : 1,
+    pixelRatio: (window.devicePixelRatio) ? window.devicePixelRatio : 1,
 
     timerLength: 0,
     timerShelve: 0,
@@ -18,17 +16,23 @@ var fpTimer = {
     timerDifference: 0,
     repeat: false,
     dataSet: [
-        0, 100
+        0, 0
     ], // circles
 
     paused: false,
     assistant: 'speechSynthesis' in window,
+    assistantNotifyInterval : [],
 
     init: function() {
 
         this.btnStart = document.querySelector('.start-timer');
         this.btnStop = document.querySelector('.stop-timer');
         this.btnPause = document.querySelector('.pause-timer');
+
+        document.querySelector('INPUT[name="duration-seconds"]').value = 0;
+        document.querySelector('INPUT[name="duration-minutes"]').value = 0;
+        document.querySelector('INPUT[name="duration-hours"]').value = 0;
+
 
 		var isMobile = (function() {
 			var check = false;
@@ -96,21 +100,15 @@ var fpTimer = {
 
     control: function() {
         var createTable = [
-            [
-                'hours', 24
-            ],
-            [
-                'minutes', 60
-            ],
+            ['hours', 24],
+            ['minutes', 60],
             ['seconds', 60]
         ];
         for (var i = 0, j = createTable.length; i < j; i++) {
             var container = document.querySelector('.' + createTable[i][0].toString() + ' DIV.select-dialog');
             for (var k = 0, l = createTable[i][1]; k < l; k++) {
                 var timeContainer = document.createElement("DIV");
-                timeContainer.appendChild(document.createTextNode((k < 10)
-                    ? '0' + k
-                    : k));
+                timeContainer.appendChild(document.createTextNode((k < 10) ? '0' + k : k));
                 container.appendChild(timeContainer);
             }
         }
@@ -121,6 +119,8 @@ var fpTimer = {
         // Play
         var playTimer = function(togglePause) {
             clearInterval(this.timer);
+            delete this.timer;
+            this.updateAssistantInterval();
 
             if (togglePause === true && !this.paused) {
                 this.paused = true;
@@ -154,12 +154,8 @@ var fpTimer = {
 
         var testTouch = document.createElement("DIV");
         testTouch.setAttribute('ontouchstart', 'return;');
-        var isTouchDevice = (typeof testTouch.ontouchstart === 'function' && window.screenX === 0)
-            ? true
-            : false;
-        window.globalClickEvent = (isTouchDevice)
-            ? 'touchend'
-            : 'click';
+        var isTouchDevice = (typeof testTouch.ontouchstart === 'function' && window.screenX === 0) ? true : false;
+        window.globalClickEvent = (isTouchDevice) ? 'touchend' : 'click';
 
         // Start timer
 
@@ -183,9 +179,12 @@ var fpTimer = {
 
     stop: function(){
         clearInterval(this.timer);
+        delete this.timer;
         this.animate();
+        this.btnStop.classList.remove('active');
         this.btnStart.classList.remove('active');
         this.btnPause.classList.remove('active');
+        this.updateAssistantInterval();
         setTimeout(function() {
             delete this.timerStart;
         }.bind(this), 30);
@@ -195,9 +194,7 @@ var fpTimer = {
         if (!params.dateString)
             return;
         var dateString = new Date(params.dateString),
-            dateFormat = (params.dateFormat)
-                ? params.dateFormat
-                : 'mm.dd.yyyy';
+            dateFormat = (params.dateFormat) ? params.dateFormat : 'mm.dd.yyyy';
 
         var json = {
             dd: dateString.getDate(),
@@ -227,19 +224,21 @@ var fpTimer = {
 
                 this.timerStart = new Date().getTime() / 1000;
 
-/*
-                // Sound fx
-                var fxEvent = new CustomEvent("playsound", {
-                    detail: {
-                        soundbank: 'timer',
-                        fx: 'mouseup'
+
+                // If speech API is not supported - play sound instead
+                if(!this.assistant){
+                    // Sound fx
+                    var fxEvent = new CustomEvent("playsound", {
+                        detail: {
+                            soundbank: 'timer',
+                            fx: 'mouseup'
+                        }
+                    });
+                    document.dispatchEvent(fxEvent);
                     }
-                });
-                document.dispatchEvent(fxEvent);
-*/
                 if(!this.repeat){
                     this.stop();
-                    this.speak('Time\'s up mother fucker')
+                    this.speak('Time\'s up!');
                 }
             }
 
@@ -247,8 +246,16 @@ var fpTimer = {
             this.dataSet[1] = 100 - this.dataSet[0];
             this.animate();
 
-            var counter = (this.timerNow - this.timerStart);
+            var counter = (this.timerNow - this.timerStart); // elapsed time
             var countercountdown = (this.timerLength - counter); // count down
+
+/* Notify time left -> */
+        if(this.assistantNotifyInterval && this.assistantNotifyInterval.length && countercountdown < this.assistantNotifyInterval[0]){
+            var timeLeft = Math.floor((countercountdown) / 60)+1;
+            this.speak(timeLeft+ ' minute'+((timeLeft !== 1) ? 's': '') + ' left');
+            this.assistantNotifyInterval.splice(0,1);
+            }
+/* <-- Notify time left  */
 
             counter = this.formatDate({
                 dateString: new Date().setHours(0, 0, counter, counter % 1 * 100),
@@ -318,14 +325,25 @@ var fpTimer = {
     },
 
     speak: function(text){
-        var voices = window.speechSynthesis.getVoices()[0];
+        if(!this.assistant){return;}
+        window.speechSynthesis.cancel();
+        var voices = window.speechSynthesis.getVoices();
+        this.hal = new SpeechSynthesisUtterance();
+        this.hal.text = text;
+        this.hal.volume = 100;
+        window.speechSynthesis.speak(this.hal);
+    },
 
-            var msg = new SpeechSynthesisUtterance();
-            msg.text = text;
-            msg.volume = 100;
-//            msg.voice = voices[0];
-            window.speechSynthesis.speak(msg);
-    }
+    updateAssistantInterval: function(){
+        /* Update assistant notify interval */
+        var timerSeconds = Number(document.querySelector('INPUT[name="duration-seconds"]').value);
+        var timerMinutes = Number(document.querySelector('INPUT[name="duration-minutes"]').value);
+        var timerHours = Number(document.querySelector('INPUT[name="duration-hours"]').value);
+
+        var timerLength = (timerHours * 3600) + (timerMinutes * 60) + timerSeconds;
+        var n = Math.floor(timerLength / 60);
+        fpTimer.assistantNotifyInterval = Array.apply(null, new Array(n)).map(function(_,i) { return (i+1)*60;}).reverse();
+        }
 };
 
 fpTimer.init();
@@ -363,9 +381,18 @@ var stopKinetic = function(swipeData) {
     swipeData.el.style[swipeData.cssEngine + 'Transition'] = "all " + swipeData.timer + "ms";
     swipeData.setTranslateCoords(swipeData.el, [swipeData.easeEndX, swipeData.easeEndY]);
     if(fpTimer.assistant){
-        var val = document.querySelector('INPUT[name=' + elData + ']').value;
-        var units =(Number(val) === 1) ? elData.split("-")[1].slice(0,-1) : elData.split("-")[1];
-        fpTimer.speak(val+ " " + units);
+        var inputs = document.querySelectorAll('INPUT');
+        var temp = '';
+        for(var i=0, j=inputs.length; i<j;i++){
+            var inputVal = inputs[i].value;
+            var inputName = inputs[i].name.split('-')[1];
+            temp+= Number(inputVal) + ' ' +((Number(inputVal) === 1) ? inputName.slice(0,-1) : inputName) + ', ';
+        }
+
+        if(!fpTimer.timer){
+            fpTimer.updateAssistantInterval();
+            fpTimer.speak(temp);
+        }
     }
 
 };
