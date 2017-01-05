@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# 2017-01-04 - 1008
+# 2017-01-05 - 1003
 
 # CSS
 ./css/animations.css
@@ -10,7 +10,7 @@ CACHE MANIFEST
 ./js/fpfw/fp_audio.js
 ./js/fpfw/fp_swipe.js
 ./js/fullscreen.js
-
+./js/nosleep.js
 ./js/timer.js
 
 # Root

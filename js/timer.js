@@ -24,7 +24,7 @@ var fpTimer = {
     assistantNotifyInterval : [],
 
     init: function() {
-
+        this.noSleep = new NoSleep();
         this.btnStart = document.querySelector('.start-timer');
         this.btnStop = document.querySelector('.stop-timer');
         this.btnPause = document.querySelector('.pause-timer');
@@ -326,12 +326,17 @@ var fpTimer = {
 
     speak: function(text){
         if(!this.assistant){return;}
+        this.noSleep.disable();
         window.speechSynthesis.cancel();
         var voices = window.speechSynthesis.getVoices();
         this.hal = new SpeechSynthesisUtterance();
         this.hal.text = text;
         this.hal.volume = 100;
         window.speechSynthesis.speak(this.hal);
+        // When speech synthesis is finished, re-enable noSleep
+        this.hal.addEventListener('end', function(event){
+            this.noSleep.enable();
+        }.bind(this), false);
     },
 
     updateAssistantInterval: function(){
@@ -386,7 +391,7 @@ var stopKinetic = function(swipeData) {
         for(var i=0, j=inputs.length; i<j;i++){
             var inputVal = inputs[i].value;
             var inputName = inputs[i].name.split('-')[1];
-            temp+= Number(inputVal) + ' ' +((Number(inputVal) === 1) ? inputName.slice(0,-1) : inputName) + ', ';
+            temp+= (Number(inputVal) > 0 && i<inputs.length) ? Number(inputVal) + ' ' +((Number(inputVal) === 1) ? inputName.slice(0,-1) : inputName) + ((i < inputs.length-1) ? ', ' : '.') : '';
         }
 
         if(!fpTimer.timer){
