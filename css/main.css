@@ -1,14 +1,25 @@
 @import "reset.css";
 @import "animations.css";
-@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,800);
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,800);
+
+:root {
+  --color-bgr: rgba(32,32,32,1);
+	--color-bgr-alpha: rgba(32,32,32,0);
+  --color-white: rgba(255,255,255,1);
+  --color-white-alpha: rgba(255,255,255,.8);
+  --color-white-alpha-low: rgba(255,255,255,.3);
+  --color-gray-dark : #222;
+  --color-gray-light: #888;
+}
+
 
 /* body and background */
 body,html {
-	background: #777783;
+	background: var(--color-bgr);
 	margin: 0;
 	width: 100%;
+  min-width: 360px;
 	height: 100%;
-	overflow: hidden;
 	-ms-touch-action: none;
 	-ms-scroll-chaining: none;
 	-ms-scroll-limit-y-max: auto;
@@ -20,7 +31,7 @@ body {
 	-webkit-transform : translate3d(0,0,0);
 	-webkit-transform-style: preserve-3d;
 	transform-style: preserve-3d;
-	color : #222;
+	color : var(--color-gray-dark);
 	font-size: 16px;
 	-webkit-user-select: none;
 	-khtml-user-select: none;
@@ -28,7 +39,7 @@ body {
 	-ms-user-select: none;
 	-o-user-select: none;
 	-webkit-font-smoothing: antialiased;
-	font-family: 'Open Sans';
+	font-family: 'Open Sans', 'Helvetica';
 }
 
 * {
@@ -54,25 +65,27 @@ body {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	overflow: hidden;
-/*	background: rgba(0,0,0,.3);*/
+	overflow-x: hidden;
+  overflow-y: auto;
 }
 
 
 section.timer{
-	padding: 10px;
-	color: #fff;
+	padding: 0px;
+	color: var(--color-white);
 	font-weight: 100;
 	font-size: 1.2em;
 	line-height: 1.4em;
 	height: 100%;
 }
 
+
+
 section.timer .timer-holder {
-	height: 320px;
+	height: 360px;
 	position: relative;
 	display: block;
-	margin: 20px auto 0;
+	margin: 0 auto 0;
 }
 
 
@@ -85,19 +98,6 @@ section.timer .timer-holder > CANVAS {
 /* Generic */
 
 .text-center {text-align: center; position: relative; z-index: 3;}
-
-.bgr-black {background : #000; color: inherit}
-.bgr-dark-gray {background : #222; color: inherit}
-.bgr-gray {background : #e8e5db; color: inherit}
-.bgr-yellow {background : #ffd619; color: inherit}
-
-.bgr-white {background : rgba(255,255,255,.3); color: inherit}
-
-
-.text-black {color: #000;}
-.text-white {color: #fff;}
-.text-gray {color: #808080;}
-
 
 /* */
 button {
@@ -114,34 +114,47 @@ button {
 	line-height: 0;
 	font-size: 12px;
 	text-decoration: none;
-	color: #fff;
+	color: var(--color-white);
 	border-radius: 40px;
 	-webkit-transition: background .25s ease-in-out;
 	-moz-transition: background .25s ease-in-out;
 	-ms-transition: background .25s ease-in-out;
 	transition: background .25s ease-in-out;
 	outline : none;
-	box-shadow: 0 0 0 1px rgba(255,255,255,.3);
+	box-shadow: 0 0 0 1px var(--color-white-alpha-low);
 }
-/* */
 
 
 button.active, button:hover{
-	box-shadow: 0 0 0 1px rgba(255,255,255,.8);
-	background: rgba(255,255,255,.8);
-	color: #888
+	box-shadow: 0 0 0 1px var(--color-white-alpha);
+  background: var(--color-white-alpha);
+  color: var(--color-gray-light);
 
 }
+
+.timer-holder.paused .title {
+  animation: 1s blink infinite ease-in-out;
+}
+
+@keyframes blink {
+		0%, 100% {
+				opacity: 1
+		}
+		50% {
+				opacity: .5
+		}
+}
+
 
 .title {
 	position: absolute;
 	left: 50%;
 	top: 50%;
 	transform: translateY(-50%) translateX(-50%);
-	width: 320px;
+	width: 360px;
 	text-align: center;
 	font-size: 48px;
-	color: rgba(255,255,255,.8);
+	color: var(--color-white-alpha);
 	font-weight: 100;
 	line-height: 1.2em;
 	text-shadow: 0 0 rgba(0,0,0,1);
@@ -156,23 +169,23 @@ button.active, button:hover{
 }
 
 .title span {position: relative;}
-/*.title span:first-of-type{left: -40px;}*/
 .title span:first-of-type{display: block}
-/*.title span:last-of-type{left: 40px;}*/
 
 
 body.landscape .controls {
 	position: absolute;
-	bottom: 20px;
 	right: 0px;
-	min-width: 320px;
+	min-width: 360px;
+	top: 50%;
+	transform: translateY(-50%);
 	}
+
 body.landscape section.timer .timer-holder {
 	position: absolute;
 	display: block;
 	top: 50%;
 	transform: translateY(-50%);
-    margin: 0 auto 0;
+  margin: 0 auto 0;
 }
 
 
@@ -241,7 +254,7 @@ body.landscape section.timer .timer-holder {
 .select-dialog-viewport:before {
 	width: 100%;
 	height: 1em;
-	background: linear-gradient(to bottom, rgba(119,119,131,1) 0%,rgba(119,119,131,1) 50%,rgba(119,119,131,0) 100%);
+	background: linear-gradient(to bottom, var(--color-bgr) 0%,var(--color-bgr) 50%,var(--color-bgr-alpha) 100%);
 	z-index: 2;
 	content: "";
 	position: absolute;
@@ -253,7 +266,7 @@ body.landscape section.timer .timer-holder {
 .select-dialog-viewport:after {
 	width: 100%;
 	height: 1em;
-	background: linear-gradient(to bottom, rgba(119,119,131,0) 0%,rgba(119,119,131,1) 50%,rgba(119,119,131,1) 100%);
+	background: linear-gradient(to bottom, var(--color-bgr-alpha) 0%,var(--color-bgr) 50%,var(--color-bgr) 100%);
 	z-index: 2;
 	content: "";
 	position: absolute;
@@ -313,20 +326,43 @@ body.landscape section.timer .timer-holder {
 		position: absolute;
 		top: 20px;
 		right: 20px;
-		width: 20px;
-		height: 20px;
-		line-height: 1em;
-		font-size: 1em;
-		border-radius: 20px;
-		box-shadow: 0 0 0 1px rgba(255,255,255,.8);
+		width: 40px;
+		height: 40px;
+		border-radius: 40px;
+		box-shadow: 0 0 0 2px var(--color-white-alpha);
 		text-align: center;
 		vertical-align: middle;
 		font-variant: small-caps;
-		color: rgba(255,255,255,.8);
+		color: var(--color-white-alpha);
 		z-index : +2;
-		display: block
+		display: flex;
+    align-items: center;
+    justify-content: center;
 }
 @supports ( display-mode: fullscreen) {
 	.togglefs {
 		display: none;	}
+}
+
+.togglefs span {
+		background: var(--color-white);
+		display: block;
+		height: 2px;
+    transform-origin: right;
+		transform: rotate(-45deg);
+  	width: 10px;
+    margin-top: -10px;
+}
+
+.togglefs span:last-of-type {
+    transform: rotate(45deg);
+    transform-origin: left;
+}
+
+.s-s-p {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 360px;
+  margin: 20px auto 0;
 }

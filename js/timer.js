@@ -4,10 +4,7 @@ document.body.addEventListener('touchmove', function(e) {
 }, false);
 
 var fpTimer = {
-    colorTable: [
-        'rgba(255,255,255,.5)', 'rgba(0,0,0,.1)', 'rgba(0,255,255,.6)', 'rgba(255,255,255,.8)', 'rgba(255,214,25,1)'
-    ],
-
+    drawRemaining : true, // true= draw from full to empty circle, false = draw from empty to full circle
     pixelRatio: (window.devicePixelRatio) ? window.devicePixelRatio : 1,
 
     timerLength: 0,
@@ -23,24 +20,41 @@ var fpTimer = {
     assistant: 'speechSynthesis' in window,
     assistantNotifyInterval : [],
 
+    colorCycle : 0,
+    colorCycleSeed :  [[255,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0]],
+    colorCycleSize : 255,
+    colorCycleTable : [],
+
+
     init: function() {
         this.noSleep = new NoSleep();
         this.btnStart = document.querySelector('.start-timer');
         this.btnStop = document.querySelector('.stop-timer');
-        this.btnPause = document.querySelector('.pause-timer');
 
         document.querySelector('INPUT[name="duration-seconds"]').value = 0;
         document.querySelector('INPUT[name="duration-minutes"]').value = 0;
         document.querySelector('INPUT[name="duration-hours"]').value = 0;
 
+        // Create color cycle table
+        var tempArr = [];
+        var colorWidth = Math.round(this.colorCycleSize / (this.colorCycleSeed.length-1));
+        for(var i=1; i<this.colorCycleSeed.length; i++) {
+        	for(var j=0; j<=colorWidth; j++) {
+        		var rr = Math.floor(this.colorCycleSeed[i-1][0] - ((this.colorCycleSeed[i-1][0] - this.colorCycleSeed[i][0])/colorWidth*j));
+        		var gr = Math.floor(this.colorCycleSeed[i-1][1] - ((this.colorCycleSeed[i-1][1] - this.colorCycleSeed[i][1])/colorWidth*j));
+        		var br = Math.floor(this.colorCycleSeed[i-1][2] - ((this.colorCycleSeed[i-1][2] - this.colorCycleSeed[i][2])/colorWidth*j));
+                tempArr.push([rr, gr, br]);
+        		}
+        	}
+        this.colorCycleTable = tempArr;
 
-		var isMobile = (function() {
-			var check = false;
-			(function(a){
-				if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;
-			})(navigator.userAgent||navigator.vendor||window.opera);
-			return check;
-		})();
+    		var isMobile = (function() {
+    			var check = false;
+    			(function(a){
+    				if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;
+    			})(navigator.userAgent||navigator.vendor||window.opera);
+    			return check;
+    		})();
 
         var togglePortrait = function() {
             var aspectRatio = (document.documentElement.clientWidth / document.documentElement.clientHeight);
@@ -51,6 +65,7 @@ var fpTimer = {
             }
 			if(!isMobile){repositionElements();}
         };
+
 		var repositionElements = function(){
 			var setTranslateCoords = function(elem, xyz) {
 				var cssEngine = (function() {
@@ -86,16 +101,12 @@ var fpTimer = {
 			}
 		};
 
-        togglePortrait();
-		window.addEventListener("orientationchange", function(){
-		setTimeout(repositionElements, 300);}, false);
-        window.addEventListener('resize', togglePortrait, false);
+    togglePortrait();
+		window.addEventListener("orientationchange", repositionElements, false);
+    window.addEventListener('resize', togglePortrait, false);
 
-        // load sound effects
-        // fpAudio.loadAudio('timer', 'mouseup', 'sounds/cowbell.' + fpAudio.support, 1);
-
-        // bind controls
-        this.control();
+    // bind controls
+    this.control();
     },
 
     control: function() {
@@ -120,15 +131,15 @@ var fpTimer = {
         var playTimer = function(togglePause) {
             clearInterval(this.timer);
             delete this.timer;
-            this.updateAssistantInterval();
-
-            if (togglePause === true && !this.paused) {
+            if (togglePause && !this.paused && this.isRunning) {
                 this.paused = true;
+                document.querySelector('.timer-holder').classList.add('paused');
                 this.timerPauseStarted = new Date().getTime() / 1000;
-                this.btnPause.classList.add('active');
                 this.btnStart.classList.remove('active');
             } else {
+                this.updateAssistantInterval();
                 this.btnStart.classList.add('active');
+                document.querySelector('.timer-holder').classList.remove('paused');
 
                 var timerSeconds = Number(document.querySelector('INPUT[name="duration-seconds"]').value);
                 var timerMinutes = Number(document.querySelector('INPUT[name="duration-minutes"]').value);
@@ -142,13 +153,13 @@ var fpTimer = {
                 // Apply time on pause to the timer start clock
                 if (this.timerPauseStarted) {
                     this.timerDifference = (new Date().getTime() / 1000) - this.timerPauseStarted;
-                    this.btnPause.classList.remove('active');
                     this.btnStart.classList.add('active');
                     this.paused = false;
                     delete this.timerPauseStarted;
                     this.timerStart += this.timerDifference;
                 }
                 this.timer = setInterval(this.animateInterval.bind(this), 30);
+                this.isRunning = true;
             }
         }.bind(this);
 
@@ -160,14 +171,9 @@ var fpTimer = {
         // Start timer
 
         this.btnStart.addEventListener(window.globalClickEvent, function() {
-            playTimer();
+            playTimer(true);
             this.btnStart.blur();
             }.bind(this), false);
-        // Pause
-        this.btnPause.addEventListener(window.globalClickEvent, function() {
-            playTimer(true);
-            this.btnPause.blur();
-        }.bind(this), false);
 
         // Stop
         this.btnStop.addEventListener(window.globalClickEvent, function() {
@@ -183,8 +189,12 @@ var fpTimer = {
         this.animate();
         this.btnStop.classList.remove('active');
         this.btnStart.classList.remove('active');
-        this.btnPause.classList.remove('active');
         this.updateAssistantInterval();
+        this.isRunning = false;
+        this.timerPauseStarted = false;
+        this.paused = false
+        document.querySelector('.timer-holder').classList.remove('paused');
+
         setTimeout(function() {
             delete this.timerStart;
         }.bind(this), 30);
@@ -238,7 +248,9 @@ var fpTimer = {
                     }
                 if(!this.repeat){
                     this.stop();
-                    this.speak('Time\'s up!');
+                    this.speak('Time\'s up.');
+                    this.isRunning = false;
+
                 }
             }
 
@@ -252,7 +264,7 @@ var fpTimer = {
 /* Notify time left -> */
         if(this.assistantNotifyInterval && this.assistantNotifyInterval.length && countercountdown < this.assistantNotifyInterval[0]){
             var timeLeft = Math.floor((countercountdown) / 60)+1;
-            this.speak(timeLeft+ ' minute'+((timeLeft !== 1) ? 's': '') + ' left');
+            this.speak(timeLeft+ ' minute'+((timeLeft !== 1) ? 's': '') + ' left.');
             this.assistantNotifyInterval.splice(0,1);
             }
 /* <-- Notify time left  */
@@ -275,11 +287,11 @@ var fpTimer = {
         "use strict";
 
         var canvas = document.createElement("CANVAS");
-        canvas.width = this.pixelRatio * 320;
-        canvas.height = this.pixelRatio * 320;
+        canvas.width = this.pixelRatio * 360;
+        canvas.height = this.pixelRatio * 360;
 
-        canvas.style.width = "320px";
-        canvas.style.height = "320px";
+        canvas.style.width = "360px";
+        canvas.style.height = "360px";
 
         document.querySelector('.timer-holder').appendChild(canvas);
         this.ctx = canvas.getContext('2d');
@@ -291,6 +303,9 @@ var fpTimer = {
     },
 
     animate: function() {
+        this.colorCycle+=.5;
+        if(this.colorCycle > this.colorCycleTable.length-1){this.colorCycle = 0;}
+
         // 100% equals 2 in canvas arc
         var max = 2 / 100;
 
@@ -298,7 +313,11 @@ var fpTimer = {
         var b = 0;
         var c = 0;
 
-        this.ctx.clearRect(0, 0, 320 * this.pixelRatio, 320 * this.pixelRatio);
+
+        this.ctx.clearRect(0, 0, 360 * this.pixelRatio, 360 * this.pixelRatio);
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 0;
+        this.ctx.shadowBlur    = 0;
         // White background
         this.ctx.beginPath();
         var radius = 140 * this.pixelRatio;
@@ -306,21 +325,28 @@ var fpTimer = {
         this.ctx.arc(this.canvas.x, this.canvas.y, radius, 0, 2 * Math.PI, true);
         this.ctx.fill();
 
-        radius = 158 * this.pixelRatio;
+        radius = 150 * this.pixelRatio;
         b = 25;
+        this.ctx.closePath();
+        this.ctx.beginPath();
 
-        for (var i = 0, j = this.dataSet.length; i < j; i++) {
-            a = this.dataSet[i];
-            var startAngle = (2 - (max * b)) * Math.PI;
-            var endAngle = (2 - (max * (b + a))) * Math.PI;
-            var counterClockwise = true;
-            this.ctx.beginPath();
-            this.ctx.arc(this.canvas.x, this.canvas.y, radius, startAngle, endAngle, counterClockwise);
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeStyle = this.colorTable[i];
-            this.ctx.stroke();
-            b = b + a;
-        }
+// draw outline
+        a = this.dataSet[0];
+        var startAngle = (2 - (max * b)) * Math.PI;
+        var endAngle = (2 - (max * (b + a))) * Math.PI;
+        var counterClockwise = this.drawRemaining;
+        this.ctx.beginPath();
+        this.ctx.arc(this.canvas.x, this.canvas.y, radius, startAngle, endAngle, counterClockwise);
+        this.ctx.lineWidth = 10;
+        this.ctx.lineCap = 'round';
+        this.ctx.strokeStyle = `rgba(${this.colorCycleTable[Math.round(this.colorCycle)]},.5)`;
+        this.ctx.shadowColor = `rgba(${this.colorCycleTable[Math.round(this.colorCycle)]},1)`;
+        this.ctx.shadowBlur    = 20;
+
+        this.ctx.stroke();
+        b = b + a;
+// draw outline
+
         this.ctx.closePath();
     },
 
@@ -348,6 +374,7 @@ var fpTimer = {
         var timerLength = (timerHours * 3600) + (timerMinutes * 60) + timerSeconds;
         var n = Math.floor(timerLength / 60);
         fpTimer.assistantNotifyInterval = Array.apply(null, new Array(n)).map(function(_,i) { return (i+1)*60;}).reverse();
+//        console.log(fpTimer.assistantNotifyInterval);
         }
 };
 
