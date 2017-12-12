@@ -356,6 +356,7 @@ var fpTimer = {
         window.speechSynthesis.cancel();
         var voices = window.speechSynthesis.getVoices();
         this.hal = new SpeechSynthesisUtterance();
+        this.hal.voice = voices.filter(function(voice) { return voice.name == 'Alex'; })[0];
         this.hal.text = text;
         this.hal.volume = 100;
         window.speechSynthesis.speak(this.hal);
