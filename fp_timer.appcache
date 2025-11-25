@@ -9,8 +9,6 @@ CACHE MANIFEST
 # JS
 ./js/fpfw/fp_audio.js
 ./js/fpfw/fp_swipe.js
-./js/fullscreen.js
-./js/nosleep.js
 ./js/timer.js
 
 # Root

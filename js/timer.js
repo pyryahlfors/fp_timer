@@ -3,6 +3,28 @@ document.body.addEventListener('touchmove', function(e) {
     e.preventDefault();
 }, false);
 
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    console.log('Wake Lock is active');
+
+    wakeLock.addEventListener('release', () => {
+      console.log('Wake Lock was released');
+    });
+  } catch (err) {
+    console.error(`${err.name}, ${err.message}`);
+  }
+}
+
+async function releaseWakeLock() {
+  if (wakeLock !== null) {
+    await wakeLock.release();
+    wakeLock = null;
+  }
+}
+
 var fpTimer = {
     drawRemaining : true, // true= draw from full to empty circle, false = draw from empty to full circle
     pixelRatio: (window.devicePixelRatio) ? window.devicePixelRatio : 1,
@@ -27,7 +49,6 @@ var fpTimer = {
 
 
     init: function() {
-        this.noSleep = new NoSleep();
         this.btnStart = document.querySelector('.start-timer');
         this.btnStop = document.querySelector('.stop-timer');
 
@@ -173,6 +194,7 @@ var fpTimer = {
         this.btnStart.addEventListener(window.globalClickEvent, function() {
             playTimer(true);
             this.btnStart.blur();
+			requestWakeLock();
             }.bind(this), false);
 
         // Stop
@@ -194,6 +216,8 @@ var fpTimer = {
         this.timerPauseStarted = false;
         this.paused = false
         document.querySelector('.timer-holder').classList.remove('paused');
+
+		releaseWakeLock();
 
         setTimeout(function() {
             delete this.timerStart;
@@ -352,7 +376,6 @@ var fpTimer = {
 
     speak: function(text){
         if(!this.assistant){return;}
-        this.noSleep.disable();
         window.speechSynthesis.cancel();
         var voices = window.speechSynthesis.getVoices();
         this.hal = new SpeechSynthesisUtterance();
@@ -360,10 +383,6 @@ var fpTimer = {
         this.hal.text = text;
         this.hal.volume = 100;
         window.speechSynthesis.speak(this.hal);
-        // When speech synthesis is finished, re-enable noSleep
-        this.hal.addEventListener('end', function(event){
-            this.noSleep.enable();
-        }.bind(this), false);
     },
 
     updateAssistantInterval: function(){
